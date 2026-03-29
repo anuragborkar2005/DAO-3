@@ -1,6 +1,6 @@
 import { cookieStorage, createStorage, http } from "@wagmi/core";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
-import { mainnet, arbitrum, localhost, sepolia } from "@reown/appkit/networks";
+import { localhost, sepolia } from "@reown/appkit/networks";
 
 // Get projectId from https://dashboard.reown.com
 export const projectId = process.env.NEXT_PUBLIC_PROJECT_ID;

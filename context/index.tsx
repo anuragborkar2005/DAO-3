@@ -4,11 +4,17 @@ import { wagmiAdapter, projectId } from "@/config";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createAppKit } from "@reown/appkit/react";
 import { sepolia } from "@reown/appkit/networks";
-import { type ReactNode } from "react";
 import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
 
 // Set up queryClient
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 60 * 1000,
+    },
+  },
+});
 
 if (!projectId) {
   throw new Error("Project ID is not defined");
@@ -16,8 +22,9 @@ if (!projectId) {
 
 // Set up metadata
 const metadata = {
-  name: "fy-dao",
-  description: "fy-dao app",
+  name: "FYDAO - AI Assisted DAO Crowdfunding",
+  description:
+    "Decentralized crowdfunding with governance, escrow & AI milestone verification",
   url: "http://localhost:3000", // origin must match your domain & subdomain
   icons: ["https://avatars.githubusercontent.com/u/179229932"],
 };
@@ -37,6 +44,7 @@ const modal = createAppKit({
     "--apkt-accent": "#007a55",
     "--apkt-border-radius-master": "5px",
   },
+  themeMode: "light",
 });
 
 function ContextProvider({
