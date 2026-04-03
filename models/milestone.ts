@@ -1,5 +1,5 @@
 import { IMilestone } from "@/types";
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const MilestoneSchema = new Schema<IMilestone>({
     campaignAddress: { type: String, required: true },

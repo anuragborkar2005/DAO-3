@@ -1,3 +1,5 @@
+import { Document } from "mongoose";
+
 export interface ICampaign extends Document {
     onChainAddress: string;
     factoryTxHash?: string;
@@ -30,5 +32,34 @@ export interface IMilestone extends Document {
         details: string;
     };
     proposalId?: string;
+    createdAt: Date;
+}
+
+export interface IProposal extends Document {
+    proposalId: string;
+    description: string;
+    targets: string[];
+    values: string[];
+    calldatas: string[];
+    proposer: string;
+    status:
+        | "pending"
+        | "active"
+        | "succeeded"
+        | "defeated"
+        | "executed"
+        | "canceled";
+    isCampaignApproval?: boolean;
+    campaignAddress?: string;
+    milestoneId?: number;
+    votesFor: string;
+    votesAgainst: string;
+    endTime?: Date;
+    createdAt: Date;
+}
+
+export interface IUser extends Document {
+    address: string;
+    votingPower?: string;
     createdAt: Date;
 }

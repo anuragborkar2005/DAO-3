@@ -1,8 +1,8 @@
 import { ICampaign } from "@/types";
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const CampaignSchema = new Schema<ICampaign>({
-    onChainAddress: { type: String, required: true, unique: true },
+    onChainAddress: { type: String, required: true, unique: true, index: true },
     creator: { type: String, required: true },
     metadataCid: { type: String, required: true },
     status: {

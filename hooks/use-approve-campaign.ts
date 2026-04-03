@@ -46,7 +46,6 @@ export function useApproveCampaign(campaignAddress: `0x${string}`) {
                     description ||
                         `Approve Campaign ${campaignAddress.slice(0, 10)}...`,
                 ],
-                chainId: sepolia.id,
             });
         } catch (error) {
             console.error("Failed to propose approval:", error);

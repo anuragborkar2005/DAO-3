@@ -32,7 +32,6 @@ export function useProposeMilestone(campaignAddress: `0x${string}`) {
             abi: ABIS.Campaign,
             functionName: "proposeMilestone",
             args: [proofCid, BigInt(amount)],
-            chainId: sepolia.id,
         });
     };
 

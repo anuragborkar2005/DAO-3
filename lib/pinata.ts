@@ -2,7 +2,7 @@ import { PinataSDK } from "pinata";
 
 const pinata = new PinataSDK({
     pinataJwt: process.env.PINATA_JWT!,
-    pinataGateway: "https://bronze-changing-silverfish-206.mypinata.cloud",
+    pinataGateway: process.env.PINATA_GATEWAY_URL,
 });
 
 interface UploadResult {

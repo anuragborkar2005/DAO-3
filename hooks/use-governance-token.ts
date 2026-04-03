@@ -12,7 +12,6 @@ export function useGovernanceToken() {
         address: CONTRACT_ADDRESSES.GovernanceToken as `0x${string}`,
         abi: ABIS.GovernanceToken,
         functionName: "totalSupply",
-        chainId: sepolia.id,
     });
 
     // User's Voting Power (getVotes)
@@ -21,7 +20,6 @@ export function useGovernanceToken() {
         abi: ABIS.GovernanceToken,
         functionName: "getVotes",
         args: address ? [address] : undefined,
-        chainId: sepolia.id,
     });
 
     // Quorum (from Governor contract)
@@ -30,7 +28,6 @@ export function useGovernanceToken() {
         abi: ABIS.DAOGovernor || [], // Add Governor ABI if needed
         functionName: "quorum",
         args: [BigInt(Math.floor(Date.now() / 1000))], // Current timestamp
-        chainId: sepolia.id,
     });
 
     const totalSupply = totalSupplyRaw

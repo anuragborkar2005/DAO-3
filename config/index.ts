@@ -1,4 +1,4 @@
-import { cookieStorage, createStorage, http } from "@wagmi/core";
+import { cookieStorage, createStorage } from "@wagmi/core";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { localhost, sepolia } from "@reown/appkit/networks";
 
@@ -6,19 +6,24 @@ import { localhost, sepolia } from "@reown/appkit/networks";
 export const projectId = process.env.NEXT_PUBLIC_PROJECT_ID;
 
 if (!projectId) {
-  throw new Error("Project ID is not defined");
+    throw new Error("Project ID is not defined");
 }
 
-export const networks = [sepolia, localhost];
+export const localchain = {
+    ...localhost,
+    id: 31337,
+};
+
+export const networks = [sepolia];
 
 //Set up the Wagmi Adapter (Config)
 export const wagmiAdapter = new WagmiAdapter({
-  storage: createStorage({
-    storage: cookieStorage,
-  }),
-  ssr: true,
-  projectId,
-  networks,
+    storage: createStorage({
+        storage: cookieStorage,
+    }),
+    ssr: true,
+    projectId,
+    networks,
 });
 
 export const config = wagmiAdapter.wagmiConfig;

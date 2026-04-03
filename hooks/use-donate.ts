@@ -27,7 +27,6 @@ export function useDonate(campaignAddress: `0x${string}`) {
             abi: ABIS.Campaign,
             functionName: "donate",
             args: [parseUnits(amount, 18)],
-            chainId: sepolia.id,
         });
     };
 
