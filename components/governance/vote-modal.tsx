@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useVote } from "@/hooks/use-vote";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { X, ArrowRight } from "lucide-react";
+import { useVoteWithDelegation } from "@/hooks/use-vote-with-delegation";
 
 interface Props {
     isOpen: boolean;
@@ -20,14 +21,9 @@ export default function VoteModal({
     description,
     onVoteSuccess,
 }: Props) {
-    const [support, setSupport] = useState<0 | 1 | 2>(1); // 0=Against, 1=For, 2=Abstain
-    const { vote, isPending } = useVote();
-
-    const handleVote = async () => {
-        await vote(proposalId, support);
-        onVoteSuccess();
-        onClose();
-    };
+    const [support, setSupport] = useState<0 | 1 | 2>(1);
+    const { castVote, delegateVotingPower, isVoting, canVote, isDelegating } =
+        useVoteWithDelegation();
 
     if (!isOpen) return null;
 
@@ -44,37 +40,52 @@ export default function VoteModal({
                 <h3 className="text-2xl font-semibold mb-6">Cast Your Vote</h3>
                 <p className="text-zinc-400 mb-8 line-clamp-3">{description}</p>
 
+                {!canVote && (
+                    <Alert className="mb-8 border-amber-500 bg-amber-950">
+                        <AlertDescription className="text-amber-300">
+                            You must delegate your voting power before you can
+                            cast votes.
+                            <Button
+                                variant="link"
+                                onClick={() => delegateVotingPower()}
+                                disabled={isDelegating}
+                                className="text-amber-400 underline mt-3 block"
+                            >
+                                {isDelegating
+                                    ? "Delegating..."
+                                    : "Delegate My Voting Power Now →"}
+                            </Button>
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 <div className="space-y-3 mb-8">
                     <button
                         onClick={() => setSupport(1)}
-                        className={`w-full p-4 rounded-2xl border-2 transition ${support === 1 ? "border-emerald-500 bg-emerald-950" : "border-zinc-700 hover:border-zinc-600"}`}
+                        disabled={!canVote}
+                        className={`w-full p-4 rounded-2xl border-2 transition-all ${support === 1 ? "border-emerald-500 bg-emerald-950" : "border-zinc-700 hover:border-zinc-600"}`}
                     >
                         ✅ For
                     </button>
                     <button
                         onClick={() => setSupport(0)}
-                        className={`w-full p-4 rounded-2xl border-2 transition ${support === 0 ? "border-red-500 bg-red-950" : "border-zinc-700 hover:border-zinc-600"}`}
+                        disabled={!canVote}
+                        className={`w-full p-4 rounded-2xl border-2 transition-all ${support === 0 ? "border-red-500 bg-red-950" : "border-zinc-700 hover:border-zinc-600"}`}
                     >
                         ❌ Against
-                    </button>
-                    <button
-                        onClick={() => setSupport(2)}
-                        className={`w-full p-4 rounded-2xl border-2 transition ${support === 2 ? "border-zinc-500 bg-zinc-800" : "border-zinc-700 hover:border-zinc-600"}`}
-                    >
-                        ⚪ Abstain
                     </button>
                 </div>
 
                 <Button
-                    onClick={handleVote}
-                    disabled={isPending}
-                    className="w-full py-6 text-lg bg-white text-black hover:bg-zinc-200"
+                    onClick={() => castVote(proposalId, support)}
+                    disabled={isVoting || !canVote}
+                    className="w-full py-6 text-lg font-semibold"
                 >
-                    {isPending ? "Voting on-chain..." : "Confirm Vote"}
+                    {isVoting ? "Casting Vote on-chain..." : "Confirm Vote"}
                 </Button>
 
                 <p className="text-center text-xs text-zinc-500 mt-6">
-                    Gas fees apply • Votes are final and recorded on Ethereum
+                    You are a DAO Member only after delegating your tokens
                 </p>
             </div>
         </div>

@@ -1,11 +1,10 @@
 "use client";
 
-import { useReadContract, useConnection } from "wagmi";
-import { sepolia } from "viem/chains";
+import { useReadContract, useAccount } from "wagmi";
 import { ABIS, CONTRACT_ADDRESSES } from "@/contracts/config";
 
 export function useGovernanceToken() {
-    const { address } = useConnection();
+    const { address } = useAccount();
 
     // Total Supply
     const { data: totalSupplyRaw } = useReadContract({
@@ -14,11 +13,27 @@ export function useGovernanceToken() {
         functionName: "totalSupply",
     });
 
+    // User's Balance
+    const { data: balanceRaw } = useReadContract({
+        address: CONTRACT_ADDRESSES.GovernanceToken as `0x${string}`,
+        abi: ABIS.GovernanceToken,
+        functionName: "balanceOf",
+        args: address ? [address] : undefined,
+    });
+
     // User's Voting Power (getVotes)
     const { data: votingPowerRaw } = useReadContract({
         address: CONTRACT_ADDRESSES.GovernanceToken as `0x${string}`,
         abi: ABIS.GovernanceToken,
         functionName: "getVotes",
+        args: address ? [address] : undefined,
+    });
+
+    // User's Delegate
+    const { data: delegatesRaw } = useReadContract({
+        address: CONTRACT_ADDRESSES.GovernanceToken as `0x${string}`,
+        abi: ABIS.GovernanceToken,
+        functionName: "delegates",
         args: address ? [address] : undefined,
     });
 
@@ -31,11 +46,15 @@ export function useGovernanceToken() {
     });
 
     const totalSupply = totalSupplyRaw
-        ? (Number(totalSupplyRaw) / 1e18).toLocaleString()
+        ? (Number(totalSupplyRaw) / 1e6).toLocaleString()
+        : "0";
+
+    const balance = balanceRaw
+        ? (Number(balanceRaw) / 1e6).toLocaleString()
         : "0";
 
     const votingPower = votingPowerRaw
-        ? (Number(votingPowerRaw) / 1e18).toLocaleString()
+        ? (Number(votingPowerRaw) / 1e6).toLocaleString()
         : "0";
 
     const quorum = quorumRaw
@@ -44,11 +63,13 @@ export function useGovernanceToken() {
 
     return {
         totalSupply,
+        balance,
         votingPower,
+        delegates: delegatesRaw as string | undefined,
         quorum,
-        // Raw values for advanced usage
         totalSupplyRaw,
+        balanceRaw,
         votingPowerRaw,
-        isLoading: !totalSupplyRaw && address, // Show loading only when connected
+        isLoading: !totalSupplyRaw && address,
     };
 }

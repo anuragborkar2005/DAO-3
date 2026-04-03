@@ -17,8 +17,12 @@ export function useCreateCampaign() {
         escrowAddress: string;
     } | null>(null);
 
+    const [currentMetadata, setCurrentMetadata] = useState<{
+        metadataURI: string;
+        targetAmount: string;
+    } | null>(null);
+
     const [isSaving, setIsSaving] = useState(false);
-    const [currentMetadataURI, setCurrentMetadataURI] = useState<string>("");
 
     const {
         writeContract,
@@ -45,15 +49,17 @@ export function useCreateCampaign() {
 
     const createCampaign = async ({
         metadataURI,
+        targetAmount,
         trustScore = 80,
     }: {
         metadataURI: string;
+        targetAmount: string;
         trustScore?: number;
     }) => {
         if (!address) throw new Error("Wallet not connected");
 
         console.log("Creating campaign with metadataURI:", metadataURI);
-        setCurrentMetadataURI(metadataURI);
+        setCurrentMetadata({ metadataURI, targetAmount });
 
         writeContract({
             address: CONTRACT_ADDRESSES.CampaignFactory as `0x${string}`,
@@ -69,7 +75,7 @@ export function useCreateCampaign() {
 
     // Sync to MongoDB when transaction is confirmed
     useEffect(() => {
-        if (!isSuccess || !receipt || !hash) return;
+        if (!isSuccess || !receipt || !hash || !currentMetadata) return;
 
         const syncToMongoDB = async () => {
             setIsSaving(true);
@@ -107,8 +113,8 @@ export function useCreateCampaign() {
                     const payload = {
                         onChainAddress: campaignAddr.toLowerCase(),
                         creator: address?.toLowerCase(),
-                        metadataCid: currentMetadataURI,
-                        targetAmount: "0",
+                        metadataCid: currentMetadata.metadataURI,
+                        targetAmount: currentMetadata.targetAmount,
                     };
 
                     const response = await fetch("/api/campaigns/create", {
@@ -140,9 +146,10 @@ export function useCreateCampaign() {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             onChainAddress: "0xPENDING_" + hash.slice(2, 10),
+                            escrowAddress: escrowAddr.toLowerCase(),
                             creator: address?.toLowerCase(),
-                            metadataCid: currentMetadataURI,
-                            targetAmount: "0",
+                            metadataCid: currentMetadata.metadataURI,
+                            targetAmount: currentMetadata.targetAmount,
                             factoryTxHash: hash,
                         }),
                     });
@@ -155,7 +162,7 @@ export function useCreateCampaign() {
         };
 
         syncToMongoDB();
-    }, [isSuccess, receipt, hash, address, currentMetadataURI]);
+    }, [isSuccess, receipt, hash, address, currentMetadata]);
 
     return {
         createCampaign,

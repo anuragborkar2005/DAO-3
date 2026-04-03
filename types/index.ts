@@ -8,6 +8,7 @@ export interface ICampaign extends Document {
     status: "created" | "pending_approval" | "live" | "rejected" | "completed";
     isLive: boolean;
     approvalProposalId?: string;
+    escrowAddress?: string;
     targetAmount?: string;
     raisedAmount?: string;
     aiReview?: {
@@ -50,6 +51,7 @@ export interface IProposal extends Document {
         | "executed"
         | "canceled";
     isCampaignApproval?: boolean;
+    isMilestoneRelease?: boolean;
     campaignAddress?: string;
     milestoneId?: number;
     votesFor: string;
@@ -62,4 +64,12 @@ export interface IUser extends Document {
     address: string;
     votingPower?: string;
     createdAt: Date;
+}
+export type UserRole = "donor" | "creator" | "dao_member" | "admin";
+
+export interface UserWithRole {
+    address: string;
+    roles: UserRole[];
+    votingPower: string;
+    isAdmin: boolean;
 }

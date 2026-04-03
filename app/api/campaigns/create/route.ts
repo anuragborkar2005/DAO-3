@@ -6,6 +6,7 @@ export async function POST(request: NextRequest) {
     try {
         const {
             onChainAddress,
+            escrowAddress,
             creator,
             metadataCid,
             targetAmount = "0",
@@ -27,6 +28,7 @@ export async function POST(request: NextRequest) {
             { onChainAddress: onChainAddress.toLowerCase() },
             {
                 onChainAddress: onChainAddress.toLowerCase(),
+                escrowAddress: escrowAddress?.toLowerCase(),
                 creator: creator.toLowerCase(),
                 metadataCid,
                 targetAmount,

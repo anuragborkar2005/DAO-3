@@ -1,7 +1,6 @@
 "use client";
 
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { sepolia } from "viem/chains";
 import { ABIS, CONTRACT_ADDRESSES } from "@/contracts/config";
 
 export function useVote() {

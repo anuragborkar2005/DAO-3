@@ -91,6 +91,78 @@ export function useEventListener() {
         },
     });
 
+    // Campaign Live Event
+    useWatchContractEvent({
+        address: CONTRACT_ADDRESSES.CampaignFactory as `0x${string}`,
+        abi: ABIS.CampaignFactory,
+        eventName: "CampaignLive",
+        onLogs: async (logs) => {
+            for (const log of logs) {
+                try {
+                    const safeLog = safeSerializeLog(log);
+                    await fetch("/api/events/sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            eventName: "CampaignLive",
+                            log: safeLog,
+                        }),
+                    });
+                } catch (err) {
+                    console.error("Failed to sync CampaignLive event:", err);
+                }
+            }
+        },
+    });
+
+    // Milestone Proposed Event
+    useWatchContractEvent({
+        address: CONTRACT_ADDRESSES.CampaignFactory as `0x${string}`,
+        abi: ABIS.CampaignFactory,
+        eventName: "MilestoneProposed",
+        onLogs: async (logs) => {
+            for (const log of logs) {
+                try {
+                    const safeLog = safeSerializeLog(log);
+                    await fetch("/api/events/sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            eventName: "MilestoneProposed",
+                            log: safeLog,
+                        }),
+                    });
+                } catch (err) {
+                    console.error("Failed to sync MilestoneProposed event:", err);
+                }
+            }
+        },
+    });
+
+    // Milestone Released Event
+    useWatchContractEvent({
+        address: CONTRACT_ADDRESSES.CampaignFactory as `0x${string}`,
+        abi: ABIS.CampaignFactory,
+        eventName: "MilestoneReleased",
+        onLogs: async (logs) => {
+            for (const log of logs) {
+                try {
+                    const safeLog = safeSerializeLog(log);
+                    await fetch("/api/events/sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            eventName: "MilestoneReleased",
+                            log: safeLog,
+                        }),
+                    });
+                } catch (err) {
+                    console.error("Failed to sync MilestoneReleased event:", err);
+                }
+            }
+        },
+    });
+
     useEffect(() => {
         if (address) {
             console.log(

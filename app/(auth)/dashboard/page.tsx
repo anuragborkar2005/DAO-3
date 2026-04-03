@@ -6,10 +6,21 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Plus, Vote, TrendingUp, Award } from "lucide-react";
 import { useGovernanceToken } from "@/hooks/use-governance-token";
+import RoleGuard from "@/components/auth/role-guard";
+import MakeDaoMember from "@/components/admin/make-dao-member";
+import { formatUnits } from "viem";
+import { useState, useEffect } from "react";
 
 export default function DashboardOverview() {
     const { address } = useAccount();
     const { votingPower, totalSupply } = useGovernanceToken();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) return null;
 
     return (
         <div className="space-y-10">
@@ -19,19 +30,20 @@ export default function DashboardOverview() {
                         Dashboard
                     </h1>
                     <p className="text-zinc-400 mt-2">
-                        Welcome back, {address?.slice(0, 6)}...
-                        {address?.slice(-4)}
+                        Welcome back, {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "DAO Member"}
                     </p>
                 </div>
-                <Link href="/campaigns/create">
-                    <Button
-                        size="lg"
-                        className="bg-emerald-600 hover:bg-emerald-700"
-                    >
-                        <Plus className="mr-2 w-5 h-5" />
-                        Create Campaign
-                    </Button>
-                </Link>
+                <RoleGuard allowedRoles={["dao_member", "admin"]}>
+                    <Link href="/campaigns/create">
+                        <Button
+                            size="lg"
+                            className="bg-emerald-600 hover:bg-emerald-700"
+                        >
+                            <Plus className="mr-2 w-5 h-5" />
+                            Create Campaign
+                        </Button>
+                    </Link>
+                </RoleGuard>
             </div>
 
             {/* Stats Cards */}
@@ -59,7 +71,7 @@ export default function DashboardOverview() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-4xl font-semibold">
+                        <div className="text-4xl font-semibold truncate">
                             {totalSupply}
                         </div>
                         <p className="text-xs text-zinc-500 mt-1">
@@ -131,6 +143,7 @@ export default function DashboardOverview() {
                     </Card>
                 </Link>
             </div>
+            <MakeDaoMember />
         </div>
     );
 }

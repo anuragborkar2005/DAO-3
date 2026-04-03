@@ -11,7 +11,9 @@ const CampaignSchema = new Schema<ICampaign>({
         default: "created",
     },
     isLive: { type: Boolean, default: false },
-    approvalProposalId: String,
+    approvalProposalId: { type: String },
+    escrowAddress: { type: String, index: true },
+    factoryTxHash: String,
     targetAmount: String,
     raisedAmount: String,
     aiReview: {

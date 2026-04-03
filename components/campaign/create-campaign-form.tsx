@@ -50,6 +50,7 @@ export default function CreateCampaignForm() {
 
             await createCampaign({
                 metadataURI: uploadResult.cid,
+                targetAmount: data.targetAmount,
                 trustScore: 92,
             });
         } catch (error) {

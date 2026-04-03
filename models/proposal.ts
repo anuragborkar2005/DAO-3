@@ -10,10 +10,11 @@ const ProposalSchema = new Schema<IProposal>({
     proposer: String,
     status: { type: String, default: "pending" },
     isCampaignApproval: Boolean,
+    isMilestoneRelease: Boolean,
     campaignAddress: String,
     milestoneId: Number,
-    votesFor: { type: String, default: "0" },
-    votesAgainst: { type: String, default: "0" },
+    votesFor: { type: Number, default: 0 },
+    votesAgainst: { type: Number, default: 0 },
     endTime: Date,
     createdAt: { type: Date, default: Date.now },
 });

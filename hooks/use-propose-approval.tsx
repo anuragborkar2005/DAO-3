@@ -1,24 +1,26 @@
 "use client";
 
-import { useWriteContract, useAccount } from "wagmi";
-import { encodeFunctionData } from "viem";
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
+import { encodeFunctionData, decodeEventLog } from "viem";
 import { ABIS, CONTRACT_ADDRESSES } from "@/contracts/config";
 import { sepolia } from "viem/chains";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function useProposeApproval(campaignAddress: `0x${string}`) {
     const { address } = useAccount();
-    const [isPending, setIsPending] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
 
-    const { writeContract } = useWriteContract();
+    const { writeContract, data: hash, isPending: isWriting, isSuccess } = useWriteContract();
+
+    const { data: receipt, isLoading: isConfirming } = useWaitForTransactionReceipt({
+        hash,
+    });
 
     const proposeApproval = async () => {
         if (!address) {
             alert("Please connect your wallet");
             return;
         }
-
-        setIsPending(true);
 
         try {
             // 1. Encode calldata for campaign.approveAndGoLive()
@@ -42,19 +44,59 @@ export function useProposeApproval(campaignAddress: `0x${string}`) {
                 chainId: sepolia.id,
             });
 
-            // TODO: After tx success → update MongoDB with approvalProposalId
-            // Use watchContractEvent or API route to sync proposalId
-
-            alert("Approval proposal submitted to DAO Governor!");
         } catch (error) {
             const err =
                 error instanceof Error ? error : new Error(String(error));
             console.error("Failed to propose approval:", err);
             alert("Error creating proposal: " + err.message);
-        } finally {
-            setIsPending(false);
         }
     };
 
-    return { proposeApproval, isPending };
+    useEffect(() => {
+        if (isSuccess && receipt) {
+            const syncProposal = async () => {
+                setIsSyncing(true);
+                try {
+                    let proposalId = "";
+                    for (const log of receipt.logs) {
+                        try {
+                            const decoded = decodeEventLog({
+                                abi: ABIS.DAOGovernor,
+                                data: log.data,
+                                topics: log.topics,
+                            });
+
+                            if (decoded.eventName === "ProposalCreated") {
+                                //eslint-disable-next-line
+                                const args = decoded.args as any;
+                                proposalId = (args.proposalId || args[0]).toString();
+                                break;
+                            }
+                        } catch (e) {
+                            continue;
+                        }
+                    }
+
+                    if (proposalId) {
+                        await fetch("/api/campaigns/propose-approval", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                campaignAddress,
+                                proposalId,
+                            }),
+                        });
+                        alert("Proposal created and synced! Proposal ID: " + proposalId);
+                    }
+                } catch (err) {
+                    console.error("Failed to sync proposal:", err);
+                } finally {
+                    setIsSyncing(false);
+                }
+            };
+            syncProposal();
+        }
+    }, [isSuccess, receipt, campaignAddress]);
+
+    return { proposeApproval, isPending: isWriting || isConfirming || isSyncing };
 }
