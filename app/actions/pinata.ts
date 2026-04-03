@@ -4,7 +4,7 @@ import { PinataSDK } from "pinata";
 
 const pinata = new PinataSDK({
     pinataJwt: process.env.PINATA_JWT!,
-    pinataGateway: process.env.PINATA_GATEWAY_URL,
+    pinataGateway: process.env.PINATA_GATEWAY_URL?.replace(/^https?:\/\//, ""),
 });
 
 interface UploadResult {
@@ -30,10 +30,12 @@ async function uploadToPinataInternal(
         });
 
         const cid = upload.cid;
+        const gateway = (process.env.PINATA_GATEWAY_URL || "gateway.pinata.cloud")
+            .replace(/^https?:\/\//, "");
 
         return {
             cid: `ipfs://${cid}`,
-            gatewayUrl: `https://${process.env.PINATA_GATEWAY_URL || "gateway.pinata.cloud"}/ipfs/${cid}`,
+            gatewayUrl: `https://${gateway}/ipfs/${cid}`,
             id: upload.id,
         };
     } catch (error) {
@@ -66,9 +68,10 @@ export async function uploadJsonToPinataAction(
  */
 export async function uploadFileAction(
     formData: FormData,
+    metadata: Record<string, string> = {},
 ): Promise<UploadResult> {
     const file = formData.get("file") as File;
     if (!file) throw new Error("No file provided");
 
-    return uploadToPinataInternal(file, { name: file.name });
+    return uploadToPinataInternal(file, { ...metadata, name: file.name });
 }

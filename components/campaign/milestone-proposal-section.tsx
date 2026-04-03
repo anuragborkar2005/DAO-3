@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useProposeMilestone } from "@/hooks/use-propose-milestone";
-import { uploadToPinata } from "@/lib/pinata";
+import { uploadFileAction } from "@/app/actions/pinata";
 
 interface Props {
     campaignAddress: `0x${string}`;
@@ -19,7 +19,7 @@ export default function MilestoneProposalSection({
     //eslint-disable-next-line
     const [aiResult, setAiResult] = useState<any>(null);
 
-    const { proposeMilestone, isPending } =
+    const { proposeMilestone, isPending, currentStep } =
         useProposeMilestone(campaignAddress);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,7 +32,10 @@ export default function MilestoneProposalSection({
 
         try {
             // 1. Upload proof to Pinata
-            const uploadResult = await uploadToPinata(proofFile, {
+            const formData = new FormData();
+            formData.append("file", proofFile);
+
+            const uploadResult = await uploadFileAction(formData, {
                 type: "milestone-proof",
             });
             const proofCid = uploadResult.cid;
@@ -62,6 +65,7 @@ export default function MilestoneProposalSection({
         await proposeMilestone({
             proofCid: aiResult.proofCid,
             amount,
+            aiResult,
         });
 
         refetch();
@@ -114,7 +118,15 @@ export default function MilestoneProposalSection({
                 disabled={isPending || !aiResult}
                 className="w-full py-4 bg-violet-600 hover:bg-violet-700 disabled:bg-zinc-700 rounded-xl font-semibold"
             >
-                Submit Milestone Proposal to DAO
+                {currentStep === "proposing-on-chain"
+                    ? "Recording Proof On-Chain..."
+                    : currentStep === "creating-dao-proposal"
+                      ? "Creating DAO Proposal..."
+                      : currentStep === "syncing"
+                        ? "Syncing to Database..."
+                        : isPending
+                          ? "Processing..."
+                          : "Submit Milestone Proposal to DAO"}
             </button>
         </div>
     );

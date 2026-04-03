@@ -2,7 +2,7 @@ import { PinataSDK } from "pinata";
 
 const pinata = new PinataSDK({
     pinataJwt: process.env.PINATA_JWT!,
-    pinataGateway: process.env.PINATA_GATEWAY_URL,
+    pinataGateway: process.env.PINATA_GATEWAY_URL?.replace(/^https?:\/\//, ""),
 });
 
 interface UploadResult {
@@ -35,10 +35,12 @@ export async function uploadToPinata(
         });
 
         const cid = upload.cid;
+        const gateway = (process.env.PINATA_GATEWAY_URL || "gateway.pinata.cloud")
+            .replace(/^https?:\/\//, "");
 
         return {
             cid: `ipfs://${cid}`,
-            gatewayUrl: `https://gateway.pinata.cloud/ipfs/${cid}`,
+            gatewayUrl: `https://${gateway}/ipfs/${cid}`,
             id: upload.id,
         };
     } catch (error) {

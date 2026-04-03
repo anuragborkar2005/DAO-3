@@ -18,6 +18,7 @@ export interface ICampaign extends Document {
     };
     createdAt: Date;
     approvedAt?: Date;
+    milestones?: IMilestone[];
 }
 
 export interface IMilestone extends Document {
@@ -33,6 +34,7 @@ export interface IMilestone extends Document {
         details: string;
     };
     proposalId?: string;
+    daoProposal?: IProposal;
     createdAt: Date;
 }
 

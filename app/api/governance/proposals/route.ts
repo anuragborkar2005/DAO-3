@@ -33,7 +33,7 @@ export async function GET() {
             return NextResponse.json({ success: true, proposals: [] });
         }
 
-        // Fetch real-time statuses from blockchain
+        // Fetch real-time statuses and votes from blockchain
         const statusCalls = proposals.map((p) => ({
             address: CONTRACT_ADDRESSES.DAOGovernor as `0x${string}`,
             abi: ABIS.DAOGovernor,
@@ -41,23 +41,55 @@ export async function GET() {
             args: [BigInt(p.proposalId)],
         }));
 
-        const results = await publicClient.multicall({
-            contracts: statusCalls,
-        });
+        const voteCalls = proposals.map((p) => ({
+            address: CONTRACT_ADDRESSES.DAOGovernor as `0x${string}`,
+            abi: ABIS.DAOGovernor,
+            functionName: "proposalVotes",
+            args: [BigInt(p.proposalId)],
+        }));
 
-        // Enrich with real-time status and type
+        const [statusResults, voteResults] = await Promise.all([
+            publicClient.multicall({ contracts: statusCalls }),
+            publicClient.multicall({ contracts: voteCalls }),
+        ]);
+
+        // Enrich with real-time status and votes
         const enriched = proposals.map((p, index) => {
-            const result = results[index];
-            let blockchainStatus = p.status;
+            const statusResult = statusResults[index];
+            const voteResult = voteResults[index];
 
-            if (result.status === "success") {
+            let blockchainStatus = p.status;
+            let votes = {
+                for: p.votes?.for || "0",
+                against: p.votes?.against || "0",
+                abstain: p.votes?.abstain || "0",
+            };
+
+            if (statusResult.status === "success") {
                 blockchainStatus =
-                    PROPOSAL_STATES[result.result as number] || p.status;
+                    PROPOSAL_STATES[statusResult.result as number] || p.status;
+            }
+
+            if (voteResult.status === "success") {
+                const [against, forVotes, abstain] = voteResult.result as [
+                    bigint,
+                    bigint,
+                    bigint,
+                ];
+                votes = {
+                    against: against.toString(),
+                    for: forVotes.toString(),
+                    abstain: abstain.toString(),
+                };
             }
 
             return {
                 ...p.toObject(),
                 status: blockchainStatus.toLowerCase(),
+                votes,
+                votesFor: votes.for,
+                votesAgainst: votes.against,
+                votesAbstain: votes.abstain,
                 isCampaignApproval:
                     p.isCampaignApproval ||
                     p.description.toLowerCase().includes("approve"),

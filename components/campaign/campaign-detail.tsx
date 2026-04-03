@@ -7,15 +7,21 @@ import DonateSection from "./donate-section";
 import MilestoneProposalSection from "./milestone-proposal-section";
 import ApprovalStatus from "./approval-status";
 
+import MilestoneTimeline from "./milestone-timeline";
+import { useAccount } from "wagmi";
+
 interface Props {
     campaignAddress: `0x${string}`;
 }
 
 export default function CampaignDetail({ campaignAddress }: Props) {
+    const { address } = useAccount();
     const { data: campaign, isLoading, refetch } = useCampaign(campaignAddress);
 
     if (isLoading || !campaign)
         return <div className="text-center py-20">Loading campaign...</div>;
+
+    const isCreator = address?.toLowerCase() === campaign.creator?.toLowerCase();
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -41,7 +47,13 @@ export default function CampaignDetail({ campaignAddress }: Props) {
                     target={Number(campaign.targetAmount || 0)}
                 />
 
-                {/* Milestones Timeline - Use Tabs or Accordion for polish */}
+                {campaign.milestones && campaign.milestones.length > 0 && (
+                    <MilestoneTimeline
+                        milestones={campaign.milestones}
+                        isCreator={isCreator}
+                        refetch={refetch}
+                    />
+                )}
             </div>
 
             {/* Sidebar */}
