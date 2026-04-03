@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X, ArrowRight } from "lucide-react";
@@ -22,8 +22,15 @@ export default function VoteModal({
     onVoteSuccess,
 }: Props) {
     const [support, setSupport] = useState<0 | 1 | 2>(1);
-    const { castVote, delegateVotingPower, isVoting, canVote, isDelegating } =
+    const { castVote, delegateVotingPower, isVoting, canVote, isDelegating, isVoteSuccess } =
         useVoteWithDelegation();
+
+    useEffect(() => {
+        if (isVoteSuccess) {
+            onVoteSuccess();
+            onClose();
+        }
+    }, [isVoteSuccess, onVoteSuccess, onClose]);
 
     if (!isOpen) return null;
 

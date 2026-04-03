@@ -12,8 +12,11 @@ interface Proposal {
         | "succeeded"
         | "defeated"
         | "executed"
-        | "canceled";
+        | "canceled"
+        | "queued";
     targets: string[];
+    values: string[];
+    calldatas: string[];
     isCampaignApproval: boolean;
     campaignAddress?: string;
     milestoneId?: number;

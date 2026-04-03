@@ -1,10 +1,11 @@
 "use client";
 
-import { useReadContract, useAccount } from "wagmi";
+import { useReadContract, useAccount, useBlockNumber } from "wagmi";
 import { ABIS, CONTRACT_ADDRESSES } from "@/contracts/config";
 
 export function useGovernanceToken() {
     const { address } = useAccount();
+    const { data: blockNumber } = useBlockNumber();
 
     // Total Supply
     const { data: totalSupplyRaw } = useReadContract({
@@ -42,7 +43,7 @@ export function useGovernanceToken() {
         address: CONTRACT_ADDRESSES.DAOGovernor as `0x${string}`,
         abi: ABIS.DAOGovernor || [], // Add Governor ABI if needed
         functionName: "quorum",
-        args: [BigInt(Math.floor(Date.now() / 1000))], // Current timestamp
+        args: blockNumber ? [blockNumber - 1n] : undefined, // Past block number
     });
 
     const totalSupply = totalSupplyRaw

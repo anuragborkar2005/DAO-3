@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useGovernanceToken } from "./use-governance-token";
 
 const ADMIN_ADDRESSES = [
-    "0xb310F160E9dBc6C323fB8CdCe9F0EAC60bC024fc".toLowerCase(),
+    "0x3dEc9ada98b5f15779b29034311a29F7a893a590".toLowerCase(),
 ];
 
 export function useUserRole() {

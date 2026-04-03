@@ -6,11 +6,11 @@ import Campaign from "@/contracts/abis/Campaign.json";
 import MilestoneEscrow from "@/contracts/abis/MilestoneEscrow.json";
 
 export const CONTRACT_ADDRESSES = {
-    CampaignFactory: "0xc02E3c4ECeb06Ac4c4605b2a76624FCb994DA985",
-    DAOGovernor: "0xBABa3290a6c1542FAcDAd43267a4d8D0Ee95d2da",
-    GovernanceToken: "0x8b1DB0ABaB5e6a67825D69550B1fB51a378e24F5",
-    MockUSDC: "0x21826486b8F61f46AF4AdC1b064C1b84E4945114",
-    Timelock: "0x64554c9C848E317E8fa0cfa29D1775cd5c86fd99",
+    CampaignFactory: "0xceC9DEB423b1D5Ab1fd2798ba5331845723674B0",
+    DAOGovernor: "0x442107614248A2E5c6d8FAd39860787296eC0891",
+    GovernanceToken: "0x9C432370c9A6f7B41f74e4d55B8c019A09BE834B",
+    MockUSDC: "0x931A036628AC40Fa43FDa3d65319163768cb97c7",
+    Timelock: "0xd82b8cc00E9A2C23C1C5921C1b999d0901d8CDAD",
 } as const;
 
 export const ABIS = {

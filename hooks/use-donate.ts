@@ -3,14 +3,14 @@
 import {
     useWriteContract,
     useWaitForTransactionReceipt,
-    useConnection,
+    useAccount,
 } from "wagmi";
 import { parseUnits } from "viem";
 import { sepolia } from "viem/chains";
 import { ABIS } from "@/contracts/config";
 
 export function useDonate(campaignAddress: `0x${string}`) {
-    const { address } = useConnection();
+    const { address } = useAccount();
 
     const {
         writeContract,
@@ -26,7 +26,7 @@ export function useDonate(campaignAddress: `0x${string}`) {
             address: campaignAddress,
             abi: ABIS.Campaign,
             functionName: "donate",
-            args: [parseUnits(amount, 18)],
+            args: [parseUnits(amount, 6)],
         });
     };
 

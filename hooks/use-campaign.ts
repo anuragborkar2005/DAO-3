@@ -2,6 +2,14 @@
 
 import { getIpfsUrl } from "@/utils/ipfs";
 import { useQuery } from "@tanstack/react-query";
+import { createPublicClient, http } from "viem";
+import { sepolia } from "viem/chains";
+import { ABIS } from "@/contracts/config";
+
+const publicClient = createPublicClient({
+    chain: sepolia,
+    transport: http(),
+});
 
 export function useCampaign(campaignAddress: string) {
     return useQuery({
@@ -13,6 +21,47 @@ export function useCampaign(campaignAddress: string) {
             const campaign = data.data;
 
             if (!campaign) return null;
+
+            // 1. Real-time On-chain Sync for Status and Raised Amount
+            try {
+                const results = await publicClient.multicall({
+                    contracts: [
+                        {
+                            address: campaignAddress as `0x${string}`,
+                            abi: ABIS.Campaign,
+                            functionName: "isLive",
+                        },
+                        {
+                            address: campaignAddress as `0x${string}`,
+                            abi: ABIS.Campaign,
+                            functionName: "escrow",
+                        }
+                    ],
+                });
+
+                if (results[0].status === "success") {
+                    const isLiveOnChain = results[0].result as boolean;
+                    if (isLiveOnChain) {
+                        campaign.isLive = true;
+                        campaign.status = "live";
+                    }
+                }
+
+                if (results[1].status === "success") {
+                    const escrowAddress = results[1].result as `0x${string}`;
+                    // Fetch raised amount from escrow
+                    const totalDeposited = await publicClient.readContract({
+                        address: escrowAddress,
+                        abi: ABIS.MilestoneEscrow,
+                        functionName: "totalDeposited",
+                    });
+                    campaign.raisedAmount = totalDeposited.toString();
+                }
+            } catch (err) {
+                console.error("Failed to sync campaign state on-chain:", err);
+            }
+
+            // 2. Metadata Fetching
             if (campaign.metadataCid) {
                 try {
                     const metadataUrl = getIpfsUrl(campaign.metadataCid);
@@ -26,14 +75,14 @@ export function useCampaign(campaignAddress: string) {
                         title: "Untitled Campaign",
                         description: "Metadata unavailable",
                         targetAmount: "0",
-                        category: "Unkwon",
+                        category: "Unknown",
                     };
                 }
             }
 
             return campaign;
         },
-        refetchInterval: 15000, // Refresh every 15 seconds
+        refetchInterval: 10000, // Refresh every 10 seconds
         enabled: !!campaignAddress,
     });
 }

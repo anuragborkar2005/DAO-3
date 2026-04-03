@@ -1,6 +1,6 @@
 "use client";
 
-import { useWriteContract, useAccount } from "wagmi";
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
 import { sepolia } from "viem/chains";
 import { useUserRole } from "./use-user-role";
 import { ABIS, CONTRACT_ADDRESSES } from "@/contracts/config";
@@ -9,10 +9,14 @@ export function useVoteWithDelegation() {
     const { address } = useAccount();
     const { canVote } = useUserRole();
 
-    const { writeContract: delegateWrite, isPending: isDelegating } =
+    const { writeContract: delegateWrite, isPending: isDelegatingWrite, data: delegateHash } =
         useWriteContract();
-    const { writeContract: voteWrite, isPending: isVoting } =
+    
+    const { writeContract: voteWrite, isPending: isVotingWrite, data: voteHash } =
         useWriteContract();
+
+    const { isLoading: isDelegatingConfirming, isSuccess: isDelegateSuccess } = useWaitForTransactionReceipt({ hash: delegateHash });
+    const { isLoading: isVotingConfirming, isSuccess: isVoteSuccess } = useWaitForTransactionReceipt({ hash: voteHash });
 
     const delegateVotingPower = async (toAddress?: `0x${string}`) => {
         const target = toAddress || address;
@@ -45,8 +49,10 @@ export function useVoteWithDelegation() {
     return {
         delegateVotingPower,
         castVote,
-        isDelegating,
-        isVoting,
+        isDelegating: isDelegatingWrite || isDelegatingConfirming,
+        isVoting: isVotingWrite || isVotingConfirming,
+        isDelegateSuccess,
+        isVoteSuccess,
         canVote,
     };
 }

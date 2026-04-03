@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Clock } from "lucide-react";
+import { Clock, Play, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import VoteModal from "./vote-modal";
+import { formatUnits } from "viem";
+import { useQueue } from "@/hooks/use-queue";
+import { useExecute } from "@/hooks/use-execute";
 
 interface Proposal {
     proposalId: string;
@@ -15,13 +18,16 @@ interface Proposal {
         | "succeeded"
         | "defeated"
         | "executed"
-        | "canceled";
+        | "canceled"
+        | "queued";
     targets: string[];
+    values: string[];
+    calldatas: string[];
     isCampaignApproval: boolean;
     isMilestoneRelease?: boolean;
     campaignAddress?: string;
-    votesFor: string;
-    votesAgainst: string;
+    votesFor: string | number;
+    votesAgainst: string | number;
     endTime: number;
 }
 
@@ -32,10 +38,36 @@ interface Props {
 
 export default function ProposalCard({ proposal, refetch }: Props) {
     const [showVoteModal, setShowVoteModal] = useState(false);
+    
+    const { queue, isPending: isQueuing } = useQueue();
+    const { execute, isPending: isExecuting } = useExecute();
 
     const isActive = proposal.status === "active";
+    const isSucceeded = proposal.status === "succeeded";
+    const isQueued = proposal.status === "queued";
+    
     const isCampaignApproval = proposal.isCampaignApproval;
     const isMilestoneRelease = proposal.isMilestoneRelease;
+
+    // Formatting votes for token with 6 decimals
+    const formattedVotesFor = formatUnits(BigInt(proposal.votesFor || 0), 6);
+    const formattedVotesAgainst = formatUnits(BigInt(proposal.votesAgainst || 0), 6);
+
+    const handleQueue = async () => {
+        try {
+            await queue(proposal.targets, proposal.values, proposal.calldatas, proposal.description);
+        } catch (error) {
+            console.error("Queue failed", error);
+        }
+    };
+
+    const handleExecute = async () => {
+        try {
+            await execute(proposal.targets, proposal.values, proposal.calldatas, proposal.description);
+        } catch (error) {
+            console.error("Execute failed", error);
+        }
+    };
 
     return (
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 hover:border-zinc-700 transition-all">
@@ -70,33 +102,62 @@ export default function ProposalCard({ proposal, refetch }: Props) {
                         <div>
                             <span className="text-emerald-400">For: </span>
                             <span className="font-medium">
-                                {proposal.votesFor}
+                                {formattedVotesFor}
                             </span>
                         </div>
                         <div>
                             <span className="text-red-400">Against: </span>
                             <span className="font-medium">
-                                {proposal.votesAgainst}
+                                {formattedVotesAgainst}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <div className="text-right">
+                <div className="text-right flex flex-col items-end gap-2">
                     {isActive && (
-                        <div className="flex items-center gap-2 text-amber-400 text-sm mb-4">
+                        <div className="flex items-center gap-2 text-amber-400 text-sm mb-2">
                             <Clock className="w-4 h-4" />
                             Voting ends soon
                         </div>
                     )}
 
-                    <Button
-                        onClick={() => setShowVoteModal(true)}
-                        disabled={!isActive}
-                        className="bg-white text-black hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-500"
-                    >
-                        {isActive ? "Cast Vote" : proposal.status.toUpperCase()}
-                    </Button>
+                    {isActive && (
+                        <Button
+                            onClick={() => setShowVoteModal(true)}
+                            className="bg-white text-black hover:bg-zinc-200"
+                        >
+                            Cast Vote
+                        </Button>
+                    )}
+
+                    {isSucceeded && (
+                        <Button
+                            onClick={handleQueue}
+                            disabled={isQueuing}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                            {isQueuing ? "Queuing..." : "Queue Proposal"}
+                            <Play className="ml-2 w-4 h-4" />
+                        </Button>
+                    )}
+
+                    {isQueued && (
+                        <Button
+                            onClick={handleExecute}
+                            disabled={isExecuting}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                        >
+                            {isExecuting ? "Executing..." : "Execute Proposal"}
+                            <CheckCircle className="ml-2 w-4 h-4" />
+                        </Button>
+                    )}
+
+                    {!isActive && !isSucceeded && !isQueued && (
+                        <Button disabled className="bg-zinc-800 text-zinc-500">
+                            {proposal.status.toUpperCase()}
+                        </Button>
+                    )}
                 </div>
             </div>
 

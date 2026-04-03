@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
                 : null,
             milestoneId: milestoneId || null,
             status: "pending",
-            votesFor: "0",
-            votesAgainst: "0",
+            votesFor: 0,
+            votesAgainst: 0,
             createdAt: new Date(),
         });
 
